@@ -5,7 +5,7 @@ interface Options {
     lang: string;
 }
 
-export const TranslateUseCase = async (openai: OpenAI, options: Options) => {
+export const translateUseCase = async (openai: OpenAI, options: Options) => {
 
     const { prompt, lang } = options;
 
