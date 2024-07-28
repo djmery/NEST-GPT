@@ -1,7 +1,9 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Res } from '@nestjs/common';
+import { Body, Controller, FileTypeValidator, Get, HttpStatus, MaxFileSizeValidator, Param, ParseFilePipe, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { GptService } from './gpt.service';
-import { OrthographyDto, ProsConsDiscusserDto, TextToAudioDto, TranslateDto } from './dtos';
+import { AudioToTextDto, OrthographyDto, ProsConsDiscusserDto, TextToAudioDto, TranslateDto } from './dtos';
 import type { Response } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 
 //el controlador va a recibir la solicitud (request) y emitir una respuesta
 
@@ -74,6 +76,37 @@ export class GptController {
     res.header('Content-Type', 'audio/mp3');
     res.status(HttpStatus.OK);
     res.sendFile(filePath);
+
+  }
+
+  @Post('audio-to-text')
+  @UseInterceptors(
+    //aquí digo la propiedad que estamos esperando, en este caso es file, aquí estamos subiendo el audio
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './generated/uploads',
+        filename: (req, file, callback) => {
+          const fileExtension = file.originalname.split('.').pop();
+          const fileName = `${new Date().getTime()}.${fileExtension}`;
+          return callback(null, fileName);
+        }
+      })
+    })
+  )
+  async audioToText(
+    @UploadedFile(
+      // los pipe en nest permiten hacer una transformación, aquí lo validamos
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1000 * 1024 * 5, message: 'File is bigger than 5 mb' }),
+          new FileTypeValidator({ fileType: 'audio/*' })
+
+        ]
+      })
+    ) file: Express.Multer.File,
+    @Body() audioToTextDto: AudioToTextDto,
+  ) {
+    return this.gptService.audioToText(file, audioToTextDto);
 
   }
 

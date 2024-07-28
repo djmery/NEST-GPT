@@ -1,3 +1,4 @@
+export * from './audioToText.use-case';
 export * from './prosConsDiscusser.use-case';
 export * from './prosConsStream.use-case';
 export * from './textToAudio.use-case';
