@@ -15,7 +15,8 @@ export class SamAssistantService {
     }
 
     async userQuestion({ threadId, question }: QuestionDto) {
-        const message = await createMessageUseCase(this.openai, { threadId, question }); //creamos el mensaje
+        //const message = await createMessageUseCase(this.openai, { threadId, question }); //creamos el mensaje
+        await createMessageUseCase(this.openai, { threadId, question }); //creamos el mensaje
         const run = await createRunUseCase(this.openai, { threadId }); //creamos el run
         await checkCompleteStatusUseCase(this.openai, { runId: run.id, threadId }); //estamos esperando el estado completado del run 
         const messages = await getMessageListUseCase(this.openai, { threadId }); // obtenemos todos los mensajes basados en este threat
